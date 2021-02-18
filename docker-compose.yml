@@ -33,7 +33,7 @@ services:
   neo4j:
     build: ./neo4j
     volumes:
-      - ./neo4j/data:/data
+      - ./data/neo4j:/data
     ports:
       - 7474:7474
       - 7687:7687
