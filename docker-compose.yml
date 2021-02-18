@@ -1,0 +1,83 @@
+version: '3'
+services:
+
+  mongo:
+    image: mongo:3.6
+    container_name: mongo
+    volumes:
+       - ./data/mongo:/data/db
+
+  elastic:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2
+    container_name: elastic
+    environment:
+      - cluster.name=elastic-cluster
+      - node.name=elastic-elastic
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true # along with the memlock settings below, disables swapping
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m" # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536 # maximum number of open files for the Elasticsearch user, set to at least 65536 on modern systems
+        hard: 65536
+    volumes:
+      - ./data/elastic:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+      - 9600:9600 # required for Performance Analyzer
+
+  # see https://github.com/grand-stack/grand-stack-starter
+  neo4j:
+    build: ./neo4j
+    volumes:
+      - ./neo4j/data:/data
+    ports:
+      - 7474:7474
+      - 7687:7687
+    environment:
+      - NEO4J_dbms_security_procedures_unrestricted=apoc.*
+      - NEO4J_apoc_import_file_enabled=true
+      - NEO4J_apoc_export_file_enabled=true
+      - NEO4J_dbms_shell_enabled=true
+
+  postgres:
+    image: postgres
+    env_file:
+      - ./postgres/database.env # configure postgres
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data/       
+
+
+  grip:
+    image: bmeg/grip
+    container_name: grip
+    volumes:
+        - ./grip/config.yml:/config/config.yml
+    # defaults to 8201
+    entrypoint: ["grip", "server", "--config", "/config/config.yml"]
+    ports:
+      - 8201:8201
+      - 8202:8202
+    depends_on:
+      - mongo
+
+  redisgraph:
+    image: redislabs/redisgraph
+    ports:
+      - "6380:6379"
+
+  dev:
+    build: dev
+    volumes:
+        - ./dev/src:/src
+    command: tail -f /dev/null
+
+networks:
+  # for ubuntu see https://mlohr.com/docker-mtu/
+  default:                               
+    driver: bridge                       
+    driver_opts:                         
+      com.docker.network.driver.mtu: 1454

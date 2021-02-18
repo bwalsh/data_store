@@ -1,0 +1,9 @@
+Database: mongodb
+
+MongoDB:
+  URL: mongodb://mongo:27017
+  DBName: grip
+
+Server:
+  RequestLogging:
+    Enable: true
