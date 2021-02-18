@@ -65,7 +65,7 @@ services:
       - mongo
 
   redisgraph:
-    image: redislabs/redisgraph
+    image: redislabs/redisgraph:edge
     ports:
       - "6380:6379"
 
