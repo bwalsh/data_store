@@ -69,6 +69,12 @@ services:
     ports:
       - "6380:6379"
 
+  redisgraph:
+    image: redislabs/redisinsight:edge
+    ports:
+      - "8001:8001"
+
+
   dev:
     build: dev
     volumes:
